@@ -17,27 +17,37 @@ print(dados.isnull().sum()) #Verificando se há valores nulos nos dados
 # Preprocessamento dos dados
 
 def preprocessamento_dados(df):
-    #removendo colunas desnecessárias
-    df.drop(["PassengerId", "Name" , "Ticket", "Cabin"], axis=1, inplace=True)
+    # Removendo colunas desnecessárias (Ajustado)
+    df.drop(["PassengerId", "Name", "Ticket", "Cabin"], axis=1, inplace=True)
 
-    df["Embarked"] = df["Embarked"].fillna("S", inplace=True) #Preenchendo valores nulos com a moda da coluna(ultimo porto para garantir que todos os passageiros tenham embarcado)
-    df.drop(["Embarked"]) #Removendo a coluna Embarked, pois não é relevante para prever a sobrevivência dos passageiros
+    # 1. Preenchendo nulos sem usar inplace junto com atribuição (Corrigido)
+    df["Embarked"] = df["Embarked"].fillna("S") 
 
-    completar_idades(df) #Chamando a função para completar os valores nulos da coluna Age
+    # 2. Tratando o valor nulo do FARE (Adicione esta linha!)
+    # Preenche o valor nulo da tarifa com a mediana de todos os passageiros
+    df["Fare"] = df["Fare"].fillna(df["Fare"].median())
+    
+    # 3. Removendo a coluna Embarked indicando que é uma coluna (Corrigido)
+    df.drop(["Embarked"], axis=1, inplace=True)
 
-    df["Sex"] = df["Sex"].map({"male": 1, "female": 0}) #Convertendo a coluna Sex para valores numéricos
+    # 4. Chamando a função para completar as idades
+    completar_idades(df) 
 
-    #Tabelas auxiliares para o modelo
-    df["Tamanho_Familia"] = df["SibSp"] + df["Parch"]  #Criando uma nova coluna com o tamanho da família do passageiro
-    df['Sozinho'] = np.where(df['Tamanho_Familia'] == 0, 1, 0) #Criando uma nova coluna para indicar se o passageiro estava sozinho ou não
-    df["faixa_etaria"] = pd.cut(df["Age"], bins=[0, 12, 18, 35, 60, 100], labels=False) #Criando uma nova coluna com a faixa etária do passageiro
+    # 5. Convertendo a coluna Sex para valores numéricos
+    df["Sex"] = df["Sex"].map({"male": 1, "female": 0}) 
+
+    # Tabelas auxiliares para o modelo
+    df["Tamanho_Familia"] = df["SibSp"] + df["Parch"]  
+    df['Sozinho'] = np.where(df['Tamanho_Familia'] == 0, 1, 0) 
+    df["faixa_etaria"] = pd.cut(df["Age"], bins=[0, 12, 18, 35, 60, 100], labels=False) 
 
     return df
-#A idade dos passageiros variam conforme a classe em que se encontram, sendo assim, é necessário completar os valores nulos da coluna Age com a média da idade dos passageiros de cada classe.
+
 def completar_idades(df):
-    mapaidades= {}
+    mapaidades = {}
     for pclass in df["Pclass"].unique():
         if pclass not in mapaidades:
-            mapaidades[pclass] = df[df["Pclass"] == pclass]["Age"].median() #Calculando a mediana da idade dos passageiros de cada classe
+            mapaidades[pclass] = df[df["Pclass"] == pclass]["Age"].median() 
 
-    df["Age"].fillna(df["Pclass"].map(mapaidades), inplace=True) #Preenchendo os valores nulos da coluna Age com a mediana da idade dos passageiros da mesma classe
+    # Removido o inplace=True para seguir as regras do Copy-on-Write (Corrigido)
+    df["Age"] = df["Age"].fillna(df["Pclass"].map(mapaidades)) 
