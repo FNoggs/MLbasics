@@ -9,20 +9,12 @@ from sklearn.metrics import accuracy_score, confusion_matrix #Biblioteca para ca
 import matplotlib.pyplot as plt #Biblioteca para visualização de dados
 import seaborn as sns #Biblioteca  suporte para visualização de dados
 
+import TratamentoDados as td #Importando o arquivo TratamentoDados.py
+
 dados = pd.read_csv('tested.csv') #Carregando os dados do arquivo CSV
 dados.info() #Exibindo informações sobre os dados
 
 print(dados.isnull().sum()) #Verificando se há valores nulos nos dados
 
-# Preprocessamento dos dados
+dados = td.preprocessamento_dados(dados) #Chamando a função de preprocessamento
 
-def preprocessamento_dados(df):
-    #removendo colunas desnecessárias
-    df.drop(["PassengerId", "Name" , "Ticket", "Cabin"], axis=1, inplace=True)
-
-    df["Embarked"] = df["Embarked"].fillna("S", inplace=True) #Preenchendo valores nulos com a moda da coluna(ultimo porto para garantir que todos os passageiros tenham embarcado)
-    df.drop(["Embarked"]) #Removendo a coluna Embarked, pois não é relevante para prever a sobrevivência dos passageiros
-
-    df["Sex"] = df["Sex"].map({"male": 1, "female": 0}) #Convertendo a coluna Sex para valores numéricos
-
-    
