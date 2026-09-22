@@ -18,3 +18,8 @@ print(dados.isnull().sum()) #Verificando se há valores nulos nos dados
 
 dados = td.preprocessamento_dados(dados) #Chamando a função de preprocessamento
 
+X = dados.drop("Survived", axis=1) #Separando os sobreviventes dos não sobreviventes
+y = dados["Survived"] #Separando a variável alvo
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42) #Dividindo os dados em treino e teste
+
